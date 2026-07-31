@@ -1,467 +1,182 @@
-# 📘 Pandas Learning Repository
-
-A beginner-friendly repository to learn **Pandas** through practical examples, simple explanations, dry runs, and memory tricks.
-
-This repository is part of my Python Data Analysis learning journey.
-
 ---
 
-# 📚 Topics Covered
+# 🔹 Merge on Multiple Columns
 
-- ✅ DataFrame Creation
-- ✅ `pd.concat()`
-  - Row-wise Concatenation (`axis=0`)
-  - Column-wise Concatenation (`axis=1`)
-  - `ignore_index=True`
-- ✅ `pd.merge()`
-  - Inner Merge
-  - Left Merge
-  - Right Merge
-  - Outer Merge
-  - One-to-One Merge
-  - One-to-Many Merge
-
----
-
-# 📂 Project Structure
-
-```
-Pandas-Learning
-│
-├── pandas_numpy.py
-├── README.md
-```
-
----
-
-# 🔹 Pandas `concat()`
-
-`concat()` is used to **combine multiple DataFrames**.
-
-Think of it as **stacking notebooks together**.
-
----
-
-## 1️⃣ Row-wise Concatenation (`axis=0`)
+Sometimes, one column is **not enough** to uniquely identify a record. In such cases, Pandas allows you to merge using **multiple columns**.
 
 ```python
-result = pd.concat([df1, df2])
+result = pd.merge(df4, df6, on=["employee", "department"])
 ```
 
-### Dry Run
+## Example
 
-```
-df1
+### DataFrame 1 (Employee Details)
 
-Julia
-Marie
-
-
-df2
-
-Adam
-Nicole
-```
-
-After concatenation
-
-```
-Julia
-Marie
-Adam
-Nicole
-```
-
-### Memory Trick
-
-```
-axis = 0
-      ⬇️
-
-Adds Rows
-```
+| employee | department | salary |
+|----------|------------|--------|
+| Julia | Data Science | 20000 |
+| Marie | Web Development | 17500 |
+| Adam | Data Science | 16000 |
+| Nicole | Cyber Security | 22000 |
 
 ---
 
-## 2️⃣ Reset Index
+### DataFrame 2 (Programming Languages)
+
+| employee | department | prog_lang |
+|----------|------------|-----------|
+| Julia | Data Science | Python |
+| Julia | Data Science | R |
+| Adam | Data Science | Python |
+| Adam | Data Science | R |
+| Marie | Web Development | HTML |
+| Nicole | Cyber Security | SQL |
+
+---
+
+## Merge
 
 ```python
-result = pd.concat([df1, df2], ignore_index=True)
+result = pd.merge(df4, df6, on=["employee", "department"])
 ```
 
-Without `ignore_index`
+### Output
 
-```
-0
-1
-0
-1
-```
-
-With `ignore_index=True`
-
-```
-0
-1
-2
-3
-```
-
-### Memory Trick
-
-```
-ignore_index=True
-
-↓
-
-Reset Index Only
-```
-
-Your data remains exactly the same.
+| employee | department | salary | prog_lang |
+|----------|------------|--------|-----------|
+| Julia | Data Science | 20000 | Python |
+| Julia | Data Science | 20000 | R |
+| Adam | Data Science | 16000 | Python |
+| Adam | Data Science | 16000 | R |
+| Marie | Web Development | 17500 | HTML |
+| Nicole | Cyber Security | 22000 | SQL |
 
 ---
 
-## 3️⃣ Column-wise Concatenation (`axis=1`)
+## 🧠 Dry Run
+
+Pandas checks **both columns** before merging.
+
+```
+employee        department
+
+Julia       ✔   Data Science ✔
+
+↓
+
+Merged
+```
+
+```
+employee        department
+
+Adam        ✔   Data Science ✔
+
+↓
+
+Merged
+```
+
+Both conditions must be **TRUE**.
+
+---
+
+## ❌ Incorrect Example
+
+Suppose `df6` looks like this:
+
+| department | prog_lang |
+|------------|-----------|
+| Data Science | Python |
+| Data Science | R |
+
+Now run
 
 ```python
-result = pd.concat([df1, df2], axis=1)
+pd.merge(df4, df6, on=["employee", "department"])
 ```
 
-### Dry Run
+This will produce
 
-Before
-
-```
-df1
-
-Julia
-Marie
+```text
+KeyError: 'employee'
 ```
 
-```
-df2
+### Why?
 
-USA
-Germany
-```
+Because `df6` does **not** contain the **employee** column.
 
-After
-
-```
-Julia     USA
-Marie     Germany
-```
-
-Rows are matched using their **index**.
-
-### Memory Trick
-
-```
-axis = 1
-      ➡️
-
-Adds Columns
-```
+For a merge on multiple columns, **every column listed in `on=[...]` must exist in both DataFrames.**
 
 ---
 
-# 🔹 Pandas `merge()`
+## 💡 Memory Trick
 
-`merge()` combines DataFrames using a **common column**.
-
-Think of it as connecting information from different Excel sheets.
-
----
-
-## Basic Merge
+### Merge on One Column
 
 ```python
-result = pd.merge(df1, df2, on="employee")
+pd.merge(df1, df2, on="employee")
 ```
 
-### Dry Run
-
-Employee Table
-
 ```
-Julia
-Marie
-Adam
-```
-
-Country Table
-
-```
-Julia → USA
-Marie → Germany
-Adam → England
-```
-
-After Merge
-
-```
-Julia  Data Science  USA
-Marie  Web Dev       Germany
-Adam   Data Science  England
-```
-
-### Memory Trick
-
-```
-merge()
+Employee ✔
 
 ↓
 
-Match using a common column 🔑
+Merge
 ```
 
 ---
 
-# Merge Types
-
-## ✅ Inner Merge
+### Merge on Multiple Columns
 
 ```python
-pd.merge(df1, df2, how="inner")
+pd.merge(df1, df2, on=["employee", "department"])
 ```
 
-Returns only matching records.
-
 ```
-🤝
+Employee ✔
+      AND
+Department ✔
 
-Common Data Only
+↓
+
+Merge
 ```
 
 ---
 
-## ✅ Left Merge
+## 📌 Rule to Remember
+
+✅ One column
 
 ```python
-pd.merge(df1, df2, how="left")
+on="employee"
 ```
 
-Keeps every row from the left DataFrame.
-
-```
-⬅️
-
-Left Never Loses Data
-```
+Only **employee** must exist in both DataFrames.
 
 ---
 
-## ✅ Right Merge
+✅ Multiple columns
 
 ```python
-pd.merge(df1, df2, how="right")
+on=["employee", "department"]
 ```
 
-Keeps every row from the right DataFrame.
+Both **employee** and **department** must exist in both DataFrames.
 
-```
-➡️
-
-Right Never Loses Data
-```
+If even one column is missing, Pandas raises a **KeyError**.
 
 ---
 
-## ✅ Outer Merge
-
-```python
-pd.merge(df1, df2, how="outer")
-```
-
-Keeps everything from both DataFrames.
-
-```
-🌍
-
-Nothing is Lost
-```
-
----
-
-# One-to-One Merge
-
-Each record matches exactly one record.
-
-```
-Julia
-
-↓
-
-USA
-```
-
-Result
-
-```
-Julia → USA
-```
-
----
-
-# One-to-Many Merge
-
-Suppose every department has multiple programming languages.
-
-Department Table
-
-```
-Data Science
-
-↓
-
-Python
-R
-```
-
-Employee Table
-
-```
-Julia
-Adam
-```
-
-Result
-
-```
-Julia → Python
-Julia → R
-
-Adam → Python
-Adam → R
-```
-
-### Why are rows repeated?
-
-Because **one department matches multiple programming languages**.
-
-Pandas creates **one output row for every matching record**.
-
----
-
-# concat() vs merge()
-
-| concat() | merge() |
-|-----------|----------|
-| Combines DataFrames | Joins DataFrames |
-| Uses axis/index | Uses common column |
-| Adds rows or columns | Matches related data |
-| Similar to stacking | Similar to SQL JOIN |
-
----
-
-# 🧠 Quick Revision
-
-```
-concat()
-
-↓
-
-Combine DataFrames
-```
-
-```
-axis = 0
-
-↓
-
-Rows ⬇️
-```
-
-```
-axis = 1
-
-↓
-
-Columns ➡️
-```
-
-```
-ignore_index=True
-
-↓
-
-Reset Index
-```
-
-```
-merge()
-
-↓
-
-Join DataFrames
-```
-
-```
-on="column"
-
-↓
-
-Matching Key 🔑
-```
-
----
-
-# 💡 Interview Questions
-
-### What is the difference between `concat()` and `merge()`?
-
-**concat()**
-
-- Combines DataFrames
-- Uses axis
-- Adds rows or columns
-
-**merge()**
-
-- Joins DataFrames
-- Uses a common column
-- Similar to SQL JOIN
-
----
-
-### When should you use `concat()`?
-
-When you want to stack DataFrames vertically or horizontally.
-
----
-
-### When should you use `merge()`?
-
-When two DataFrames have related information through a common column.
-
----
-
-# 🚀 What's Next
-
-- ⏳ `join()`
-- ⏳ `groupby()`
-- ⏳ `pivot_table()`
-- ⏳ `melt()`
-- ⏳ `apply()`
-- ⏳ `map()`
-- ⏳ `sort_values()`
-- ⏳ Missing Values
-- ⏳ MultiIndex
-
----
-
-# 🛠 Requirements
-
-```bash
-pip install pandas
-```
-
----
-
-# ⭐ Author
-
-**Sami Khan**
-
-Learning Python & Pandas one concept at a time.
-
-If this repository helped you, consider giving it a ⭐.
+### Quick Summary
+
+| Merge Type | Requirement |
+|------------|-------------|
+| `on="employee"` | `employee` must exist in both DataFrames |
+| `on=["employee", "department"]` | Both columns must exist in both DataFrames |
+| Missing column | `KeyError` |
+
+> **Easy Formula:**  
+> **More columns in `on` = More conditions that must match.** 🔑
